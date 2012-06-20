@@ -1,8 +1,9 @@
 WRAPPER_FOUND=0
-for wrapsource in "/usr/local/bin/virtualenvwrapper.sh" "/etc/bash_completion.d/virtualenvwrapper" ; do
-  if [[ -e $wrapsource ]] ; then
+#for wrapsource in "/usr/local/bin/virtualenvwrapper.sh" "/etc/bash_completion.d/virtualenvwrapper" ; do
+#echo "VIRTUALENVWRAPPER LOADING"
+if [[ $VIRTUALENVWRAPPER_HOOK_DIR != "" ]] ; then
     WRAPPER_FOUND=1
-    source $wrapsource
+    #source $wrapsource
 
     if [[ ! $DISABLE_VENV_CD -eq 1 ]]; then
       # Automatically activate Git projects' virtual environments based on the
@@ -12,16 +13,23 @@ for wrapsource in "/usr/local/bin/virtualenvwrapper.sh" "/etc/bash_completion.d/
           # Check that this is a Git repo
           GIT_DIR=`git rev-parse --git-dir 2> /dev/null`
           if (( $? == 0 )); then
+              if [[ $GIT_DIR == '.git' ]]; then
+                  GIT_DIR=`pwd`/.git
+              fi
               # Find the repo root and check for virtualenv name override
-              GIT_DIR=`readlink -f $GIT_DIR`
-              PROJECT_ROOT=`dirname "$GIT_DIR"`
-              ENV_NAME=`basename "$PROJECT_ROOT"`
+              #GIT_DIR=`readlink -f $GIT_DIR`
+              local PROJECT_ROOT=`dirname "$GIT_DIR"`
+              local ENV_NAME=`basename "$PROJECT_ROOT"`
               if [[ -f "$PROJECT_ROOT/.venv" ]]; then
                   ENV_NAME=`cat "$PROJECT_ROOT/.venv"`
               fi
               # Activate the environment only if it is not already active
+              #echo "VIRTUAL_ENV $VIRTUAL_ENV"
+              #echo "WORKON_HOME/ENV_NAME $WORKON_HOME/$ENV_NAME"
               if [[ "$VIRTUAL_ENV" != "$WORKON_HOME/$ENV_NAME" ]]; then
+                  #echo "bobo1"
                   if [[ -e "$WORKON_HOME/$ENV_NAME/bin/activate" ]]; then
+                      #echo "bobo2"
                       workon "$ENV_NAME" && export CD_VIRTUAL_ENV="$ENV_NAME"
                   fi
               fi
@@ -38,9 +46,8 @@ for wrapsource in "/usr/local/bin/virtualenvwrapper.sh" "/etc/bash_completion.d/
       }
     fi
 
-    break
-  fi
-done
+fi
+#done
 
 if [ $WRAPPER_FOUND -eq 0 ] ; then
   print "zsh virtualenvwrapper plugin: Couldn't activate virtualenvwrapper. Please run \`pip install virtualenvwrapper\`."
